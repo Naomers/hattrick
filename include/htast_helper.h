@@ -1,8 +1,6 @@
 #ifndef HTAST_HELPER_H
 #define HTAST_HELPER_H
 
-//#define ADVANCE(cur) do { if ((cur)->ll_next) (cur) = (cur)->ll_next; } while(0)
-//#define ADVANCE(cur) if ((cur)->ll_next) (cur) = (cur)->ll_next;
 void ADVANCE(lexerNode_t **cur) {
     if ((*cur)->ll_next) {
         *cur = (*cur)->ll_next;
