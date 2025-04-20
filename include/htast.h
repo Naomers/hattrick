@@ -26,11 +26,20 @@ struct repr_s {
 			token_t *id;
 		}ident;
 		struct {
+			token_t *lit;
+		}literal;
+		struct {
 			int atSign;
 			token_t *callName;
 			int argCount;
 			struct repr_s **args;
 		}call;
+		struct {
+			struct repr_s *lhs; //lefthand side
+			token_t *oper;
+			struct repr_s *rhs;
+		}oper;
+
 
 	}l;
 };
