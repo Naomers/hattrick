@@ -30,6 +30,7 @@ enum tokenType_e singleCharReturn(char c){
 		case '(': return tok_op_lpar;
 		case '[': return tok_op_lbrack;
 		case ']': return tok_op_rbrack;
+		case ';': return tok_comment;
 		case ',': return tok_op_comma;
 	}
 	return -1;
@@ -124,35 +125,14 @@ enum tokenType_e getKeywordType(const char *str) {
 
 lexerNode_t *httokenize(const char *s){
 	if(s == NULL) return NULL;
-	const char *sep = " @().,'\"";
+	const char *sep = " @;=+-/*().,'\"";
 	int ws = 0;
 	lexerNode_t *head = NULL;
 	/* TODO:
 	   Check to see if using a tail pointer to prevent walking the list everytime is faster
 	   Most lexed stmts will be rather short, maybe 30 tokens at max, so I'll concern myself
 	   with that optimization later! */
-
 	while(s[ws] != '\0'){
-
-		/*if(s[ws] == '\'' || s[ws] == '"'){
-			char quote = s[ws]
-			int end = ws +1;
-			while(s[end] && s[end] != quote){
-				if(s[end] == '\\' && s[end + 1]){
-					end +=2'
-				}else {
-					end++;
-				}
-			}
-			if(s[end] == quote) end++;
-
-			char *sub = substring(s, ws, end);
-			head = appendNode(head, createNode(sub));
-			free(sub);
-			ws = end;
-			continue;
-		}*/
-
 		int c = peekForAny(s, ws, sep);
 		// if c == -1 that means no more seps are found
 		// this is the finalization
@@ -174,6 +154,9 @@ lexerNode_t *httokenize(const char *s){
 		if(s[c] != ' '){ //whitespaces can be ignored
 			char sepStr[2] = { s[c], '\0' };
 			head = appendNode(head, createNode(sepStr));
+			if(s[c] == ';'){
+				return head;
+			}
 		}
 		ws = c + 1;
 	}
@@ -183,7 +166,7 @@ lexerNode_t *httokenize(const char *s){
 void debugWalk(lexerNode_t * head){
 	lexerNode_t *cur = head;
 	while(cur != NULL){
-		printf("%d\n", cur->ll_tok->tokType);
+		printf("%d ", cur->ll_tok->tokType);
 		cur = cur->ll_next;
 	}
 }
@@ -195,8 +178,10 @@ void indescriminateMemoryExtermination(lexerNode_t *head){
 		if(cur->ll_tok){
 			if(cur->ll_tok->tokStr){
 				free(cur->ll_tok->tokStr);
+				cur->ll_tok->tokStr = NULL;
 			}
 			free(cur->ll_tok);
+			cur->ll_tok = NULL;
 		}
 		free(cur);
 		cur = next;
@@ -220,6 +205,10 @@ void determineTokenTypes(lexerNode_t *head){
 			if(tok->tokType == -1){
 				tok->tokType = tok_identifier;
 			}
+			/*if(tok->tokType == tok_comment){
+				indescriminateMemoryExtermination(cur);
+				return;
+			}*/
 		}else {
 			tok->tokType = getKeywordType(tok->tokStr);
 			//TODO: identify literals like 1234 or "foo" 

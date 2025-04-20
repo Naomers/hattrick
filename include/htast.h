@@ -17,6 +17,8 @@ enum repr_e {
 	reprCall,
 	reprOperation,
 	reprCondition,
+	reprDotAccess, //x.var
+	reprBrackAccess, //x[var]
 };
 
 struct repr_s {
@@ -60,6 +62,12 @@ struct repr_s *parseIdent(lexerNode_t *cur);
 struct repr_s *parseRepr(lexerNode_t *lex);
 struct repr_s *parseCall(lexerNode_t *lex);
 
+void printreplit(struct repr_s *r);
+void printrepident(struct repr_s *r);
+void printOperation(struct repr_s *r);
+void printrepCall(struct repr_s *r);
+
+struct repr_s *parseOperKnownLHS(lexerNode_t *lex, struct repr_s *lhs);
 
 
 

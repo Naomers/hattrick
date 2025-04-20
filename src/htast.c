@@ -13,7 +13,6 @@ int isCall(lexerNode_t *lex){
 		if(!matchNext(lex, tok_identifier)){
 			return -1;
 		}
-	//	isCall(next(lex));
 		ADVANCE(&lex);
 	}
 	if(!match(lex, tok_identifier)){
@@ -116,6 +115,14 @@ uglyLazyGotoHack:     // I'm so sorry Dijkstra. This is awful.
 			switch(nextTkType(lex)){
 				case tok_INVALID:
 					return r;
+				case tok_op_plus:
+				case tok_op_minus:
+				case tok_op_div:
+				case tok_op_mult:
+					r = parseIdent(lex);
+					ADVANCE(&lex);
+					struct repr_s *rLevelTwo = parseOperKnownLHS(lex, r);
+					return rLevelTwo;
 				default:
 					r = parseIdent(lex);
 					return r;
@@ -132,12 +139,33 @@ uglyLazyGotoHack:     // I'm so sorry Dijkstra. This is awful.
 	}
 	return r;
 }
+//TODO: 
+// parseRepr is insanely ugly and hard to read
+// this could easily be made more modular and more readable
+// that's not even mentioning how unoptimized and garbo it is 
 
 struct repr_s *parseOperation(lexerNode_t *lex){
 	struct repr_s *lhs = parseRepr(lex);
-	if(lhs = NULL){
+	if(lhs == NULL){
 		return NULL;
 	}
+	token_t *operator = tk(lex);
+	ADVANCE(&lex);
+	struct repr_s *rhs = parseRepr(lex);
+	if(rhs == NULL) {
+		free(lhs);
+		return NULL;
+	}
+	struct repr_s *r = malloc(sizeof(struct repr_s));
+	r->reprType = reprOperation;
+	r->l.oper.lhs = lhs;
+	r->l.oper.oper = operator;
+	r->l.oper.rhs = rhs;
+
+	return r;
+}
+
+struct repr_s *parseOperKnownLHS(lexerNode_t *lex, struct repr_s *lhs){
 	token_t *operator = tk(lex);
 	ADVANCE(&lex);
 	struct repr_s *rhs = parseRepr(lex);
@@ -217,10 +245,35 @@ void printreplit(struct repr_s *r){
 
 
 void printrepident(struct repr_s *r){
-	printf("%d\n", r->reprType);
 	if(r->reprType == reprIdent){
 		printf("This is an AST node for an identifier.\n");
 		printf("ident is - %s\n", r->l.ident.id->tokStr);
+	}
+}
+
+void printOperation(struct repr_s *r){
+	if(r->reprType == reprOperation){
+		printf("This is an AST node for an operation.\n");
+		struct repr_s *s = r->l.oper.lhs;
+gotoPrintSide:
+		switch(s->reprType){
+			case reprCall:
+				printrepCall(s);
+				break;
+			case reprIdent:
+				printrepident(s);
+				break;
+			case reprLiteral:
+				printreplit(s);
+				break;
+			case reprOperation:
+				printOperation(s);
+				break;
+		}
+		if(s == r->l.oper.lhs){
+			s = r->l.oper.rhs;
+			goto gotoPrintSide;
+		}
 	}
 }
 
@@ -231,19 +284,22 @@ void printrepCall(struct repr_s *r){
 		printf("Function has %d arguments\n", r->l.call.argCount);
 		for(int i = 0; i != r->l.call.argCount; i++){
 			switch(r->l.call.args[i]->reprType){
+				case reprCall:
+					printrepCall(r->l.call.args[i]);
+					break;
 				case reprIdent:
 					printrepident(r->l.call.args[i]);
 					break;
 				case reprLiteral:
 					printreplit(r->l.call.args[i]);
 					break;
+				case reprOperation:
+					printOperation(r->l.call.args[i]);
+					break;
 			}
 		}
 	}
 }
-
-
-
 
 
 
@@ -257,5 +313,9 @@ int main(){
 	determineTokenTypes(tokens);
 
 	struct repr_s *c = parseRepr(tokens);
+	printf("%d\n", c->reprType);
 	printrepCall(c);
+
+	debugWalk(tokens);
+	indescriminateMemoryExtermination(tokens);
 }
