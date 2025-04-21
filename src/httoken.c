@@ -5,6 +5,13 @@
 #include <ctype.h>
 #include "httoken.h"
 
+//TODO:
+// Currently literal number tokenization only works for 2+ ditit lits
+// like 10 or 09
+// single digit literals like 1 or 0 still get tokenized as idents
+// I believe I know what this is, and it's an easy fix
+// but a relatively low priority.
+
 token_t *allocateEmptyToken(){
 	token_t *token = malloc(sizeof(token_t));
 	token->tokType = tok_TBD;

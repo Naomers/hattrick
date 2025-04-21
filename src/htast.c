@@ -132,6 +132,14 @@ uglyLazyGotoHack:     // I'm so sorry Dijkstra. This is awful.
 			switch(nextTkType(lex)){
 				case tok_INVALID:
 					return r;
+				case tok_op_plus:
+				case tok_op_minus:
+				case tok_op_div:
+				case tok_op_mult:
+					r = parseLiteral(lex);
+					ADVANCE(&lex);
+					struct repr_s *rLevelTwo = parseOperKnownLHS(lex, r);
+					return rLevelTwo;
 				default:
 					r = parseLiteral(lex);
 					return r;

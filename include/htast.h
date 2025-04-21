@@ -41,6 +41,14 @@ struct repr_s {
 			token_t *oper;
 			struct repr_s *rhs;
 		}oper;
+		struct {
+			token_t *id;
+			struct repr_r *access;
+		}dotAcc;
+		struct {
+			token_t *id;
+			struct repr_r *access;
+		}brackAcc;
 
 
 	}l;
