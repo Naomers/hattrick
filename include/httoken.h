@@ -40,6 +40,8 @@ enum tokenType_e {
 	//tok_kw_* :
 	//keyword tokens
 	tok_kw_if,         // if
+	tok_kw_while,      // while
+	tok_kw_for,        // for
 	tok_kw_true,       // true
 	tok_kw_false,      // false
 	tok_kw_null,       // null

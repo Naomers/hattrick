@@ -124,6 +124,8 @@ enum tokenType_e getKeywordType(const char *str) {
 	if (strncmp(str, "true", length) == 0 && length == 4) return tok_kw_true;
 	if (strncmp(str, "false", length) == 0 && length == 5) return tok_kw_false;
 	if (strncmp(str, "null", length) == 0 && length == 4) return tok_kw_null;
+	if (strncmp(str, "while", length) == 0 && length == 5) return tok_kw_while;
+	if (strncmp(str, "for", length) == 0 && length == 3) return tok_kw_for;
 	if(isStringNumeric(str)){
 		return tok_literal_num;
 	}
