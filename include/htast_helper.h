@@ -100,7 +100,26 @@ void advanceTo(lexerNode_t **lex, enum tokenType_e to){
 	}
 }
 
+/*******************************************************************************************************
+I'm strongly considering with the ast, instead of currently passing around a heap allocated
+ast node (repr_s struct) to stuff like the helper functions I make a global repr_r for the
+currently being operated on repr_r struct. Of course all repr_s's would eventually need to be
+malloc'd onto the heap.
 
+This has a few benefits:
+- Helper functions can become non-returning, meaning I don't need to set up a stack frame.
+Every single helper function right now has a prelude and epilogue for stack handling.
+- It would make future assembly optimizations significantly easier as I can then avoid
+dealing with the stack!
+- Less pointer traversal. Every single helper function does at least one pointer traversal
+like return cur->ll_tok. This is a pointer traversal on the heap, a struct access on
+a global variable, especially one I throw into a register, would be faster. I don't *really*
+know where on the heap or in my RAM the repr_s struct will be allocated to. It's possible
+I'd have to switch pages for access, although hopefully GCC and Linux aren't that dumb.
+
+Of course this solution would be very ugly, and cutting out maybe 4-6 instructions per helper function
+is a miscalculation of Amdahl's law, but I think its worth considering.
+*********************************************************************************************************/
 
 
 #endif

@@ -33,6 +33,7 @@ enum tokenType_e {
 	tok_op_lbrack,     // [
 	tok_op_rbrack,     // ]
 	tok_op_comma,      // ,
+	tok_op_eqeq,       // ==
 
 	tok_comment,       // ;
 

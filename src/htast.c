@@ -320,10 +320,10 @@ int main(){
 	lexerNode_t *tokens = httokenize(buff);
 	determineTokenTypes(tokens);
 
-	struct repr_s *c = parseRepr(tokens);
-	printf("%d\n", c->reprType);
-	printrepCall(c);
+	//struct repr_s *c = parseRepr(tokens);
+	//printf("%d\n", c->reprType);
+	//printrepCall(c);
 
 	debugWalk(tokens);
-	indescriminateMemoryExtermination(tokens);
+	//indescriminateMemoryExtermination(tokens);
 }
