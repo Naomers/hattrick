@@ -1,20 +1,53 @@
 #ifndef HTAST_HELPER_H
 #define HTAST_HELPER_H
-
+/*
 void ADVANCE(lexerNode_t **cur) {
     if ((*cur)->ll_next) {
         *cur = (*cur)->ll_next;
 	return;
     }
     *cur = NULL;
+}*/
+void ADVANCE(register lexerNode_t **cur){
+	asm volatile(
+		"mov (%0), %%rax\n\t"     // rax = *cur
+		"mov 8(%%rax), %%rcx\n\t" // rcx = (*cur)->ll_next
+		"mov %%rcx, (%0)"	  // *cur = rcx 
+		:
+		: "r" (cur)
+		: "rax", "rcx", "memory"
+	);
+	// This will be HELL to debug if I ever change the lexerNode_t struct
+	// making the 8 offset no longer valid.
 }
-
+/*
 enum tokenType_e tkType(lexerNode_t *cur){
 	if(cur->ll_tok){
 		return cur->ll_tok->tokType;
 	}
 	return tok_INVALID;
+}*/
+
+enum tokenType_e tkType(register lexerNode_t *cur){
+	int result;
+	asm volatile(
+		"mov %[cur], %%rax\n\t"
+		"mov (%%rax), %%rax\n\t"
+		"test %%rax, %%rax\n\t"
+		"movl $-2, %[result]\n\t"
+		"je 1f\n\t"
+		"mov (%%rax), %%ecx\n\t"
+		"mov %%ecx, %[result]\n"
+		"1:"
+		: [result] "=r" (result)
+		: [cur] "r" (cur)
+		: "rax", "eax"
+	);
+	return result;
+	//0.17% faster. Could be better. Not worth my time worrying about right now.
 }
+
+
 // tkType should remain a function.
 // when I wrote a macroized version, the inline code was actually much more bloated than a 'call' instruction.
 // tkType was 0.23% slower macro-ized. Unless I cut corners (NOT A GOOD IDEA FOR AN ALREADY FRAGILE PARSER)

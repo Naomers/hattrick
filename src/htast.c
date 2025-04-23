@@ -78,8 +78,6 @@ int isOperation(lexerNode_t *lex){
 	//this is a simplistic as shit mthod of checking and it kinda sucks ass. Refine it lots
 }
 
-		
-
 
 
 struct repr_s *parseIdent(lexerNode_t *cur){
@@ -114,6 +112,7 @@ uglyLazyGotoHack:     // I'm so sorry Dijkstra. This is awful.
 			}
 			switch(nextTkType(lex)){
 				case tok_INVALID:
+					r = parseIdent(lex);
 					return r;
 				case tok_op_plus:
 				case tok_op_minus:
@@ -309,7 +308,47 @@ void printrepCall(struct repr_s *r){
 	}
 }
 
+void printRep(struct repr_s *r){
+	switch(r->reprType){
+		case reprCall:
+			printrepCall(r);
+			return;
+		case reprIdent:
+			printrepident(r);
+			return;
+		case reprLiteral:
+			printreplit(r);
+			return;
+		case reprOperation:
+			printOperation(r);
+			return;
+	}
+}
 
+struct stmt_s *parse(lexerNode_t *lex){
+	struct stmt_s *s = malloc(sizeof(struct stmt_s));
+	if(match(lex, tok_kw_return)){
+		s->stmtType = stmtReturn;
+		ADVANCE(&lex);
+		s->l.ret.rv = parseRepr(lex);
+	}
+	if(isTypeInLex(lex, tok_op_assignment)){
+		int tcount = 0;
+		while(1){
+			//TODO:
+			//handle assignment
+		}
+	}
+	return s;
+}
+
+void printReturn(struct stmt_s *r){
+	if(r->stmtType == stmtReturn){
+		printf("Return statement\n");
+		printf("Return value : \n");
+		printRep(r->l.ret.rv);
+	}
+}
 
 
 
@@ -320,10 +359,10 @@ int main(){
 	lexerNode_t *tokens = httokenize(buff);
 	determineTokenTypes(tokens);
 
-	//struct repr_s *c = parseRepr(tokens);
-	//printf("%d\n", c->reprType);
-	//printrepCall(c);
+	struct stmt_s *s = parse(tokens);
+	//printReturn(s);
 
-	debugWalk(tokens);
-	//indescriminateMemoryExtermination(tokens);
+	//debugWalk(tokens);
 }
+
+//TODO: organize this whole mess of a file!!!

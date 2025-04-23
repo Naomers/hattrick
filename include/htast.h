@@ -58,6 +58,14 @@ struct stmt_s {
 	enum stmt_e stmtType;
 	union {
 		struct {
+			struct repr_s **targets;
+			struct repr_s *assignment;
+			int targCount;
+		}ass;
+		struct {
+			struct repr_s *rv;
+		}ret;
+		struct {
 			struct repr_s *repr;
 		}repStmt;
 	}l;
