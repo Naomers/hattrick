@@ -108,6 +108,13 @@ uglyLazyGotoHack:     // I'm so sorry Dijkstra. This is awful.
 		case tok_identifier:
 			if(isCall(lex) == 1){
 				r = parseCall(lex);
+				advanceTo(&lex, tok_op_rpar);
+				if(nextTkType(lex) == tok_op_plus){
+					ADVANCE(&lex);
+					struct repr_s *rlev2 = parseOperKnownLHS(lex, r);
+					return rlev2;
+				}//This is a hacky way of implementing this.
+				// not perfect but it works for now
 				return r;
 			}
 			switch(nextTkType(lex)){
@@ -325,6 +332,28 @@ void printRep(struct repr_s *r){
 	}
 }
 
+int assignCountTargets(lexerNode_t *lex){
+	int count = 0;
+	while(1){
+		switch(tkType(lex)){
+			case tok_identifier:
+				count++;
+				break;
+			case tok_op_comma:
+				break;
+			case tok_op_assignment:
+				return count;
+			default:
+				printf("Syntax error\n");
+				return -1;
+		}
+		ADVANCE(&lex);
+	}
+}//TODO: I don't like this because we have to iterate through the linked list twice
+// once to count the number of targets, but a second time to write those targets into the assignemnt
+// ast node.
+
+
 struct stmt_s *parse(lexerNode_t *lex){
 	struct stmt_s *s = malloc(sizeof(struct stmt_s));
 	if(match(lex, tok_kw_return)){
@@ -333,10 +362,23 @@ struct stmt_s *parse(lexerNode_t *lex){
 		s->l.ret.rv = parseRepr(lex);
 	}
 	if(isTypeInLex(lex, tok_op_assignment)){
-		int tcount = 0;
-		while(1){
-			//TODO:
-			//handle assignment
+		int tcount = assignCountTargets(lex);
+		s->stmtType = stmtAssign;
+		s->l.ass.targCount = tcount;
+		s->l.ass.targets = malloc(tcount * sizeof(struct repr_s));
+		for(int i = 0;; i++){
+			switch(tkType(lex)){
+				case tok_identifier:
+					s->l.ass.targets[i] = parseIdent(lex);
+					break;
+				case tok_op_comma:
+					break;
+				case tok_op_assignment:
+					ADVANCE(&lex);
+					s->l.ass.assignment = parseRepr(lex);
+					return s;
+			}
+			ADVANCE(&lex);
 		}
 	}
 	return s;
@@ -350,6 +392,18 @@ void printReturn(struct stmt_s *r){
 	}
 }
 
+void printAssignment(struct stmt_s *a){
+	if(a->stmtType == stmtAssign){
+		printf("Assignment statement\n");
+		printf("Assignment targets : \n");
+		for(int i = 0; i != a->l.ass.targCount; i++){
+			printRep(a->l.ass.targets[i]);
+		}
+		printf("Assign value is\n");
+		printRep(a->l.ass.assignment);
+	}
+}
+
 
 
 int main(){
@@ -360,6 +414,7 @@ int main(){
 	determineTokenTypes(tokens);
 
 	struct stmt_s *s = parse(tokens);
+	printAssignment(s);
 	//printReturn(s);
 
 	//debugWalk(tokens);

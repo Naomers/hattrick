@@ -1,13 +1,6 @@
 #ifndef HTAST_HELPER_H
 #define HTAST_HELPER_H
-/*
-void ADVANCE(lexerNode_t **cur) {
-    if ((*cur)->ll_next) {
-        *cur = (*cur)->ll_next;
-	return;
-    }
-    *cur = NULL;
-}*/
+
 void ADVANCE(register lexerNode_t **cur){
 	asm volatile(
 		"mov (%0), %%rax\n\t"     // rax = *cur
@@ -20,13 +13,6 @@ void ADVANCE(register lexerNode_t **cur){
 	// This will be HELL to debug if I ever change the lexerNode_t struct
 	// making the 8 offset no longer valid.
 }
-/*
-enum tokenType_e tkType(lexerNode_t *cur){
-	if(cur->ll_tok){
-		return cur->ll_tok->tokType;
-	}
-	return tok_INVALID;
-}*/
 
 enum tokenType_e tkType(register lexerNode_t *cur){
 	int result;
@@ -47,25 +33,7 @@ enum tokenType_e tkType(register lexerNode_t *cur){
 	//0.17% faster. Could be better. Not worth my time worrying about right now.
 }
 
-
-// tkType should remain a function.
-// when I wrote a macroized version, the inline code was actually much more bloated than a 'call' instruction.
-// tkType was 0.23% slower macro-ized. Unless I cut corners (NOT A GOOD IDEA FOR AN ALREADY FRAGILE PARSER)
-// tkType should remain a function.
-
 #define NEXT(cur) ((cur) && (cur)->ll_next ? (cur)->ll_next : NULL)
-/*
-lexerNode_t *next(lexerNode_t *cur){
-	if(cur->ll_next){
-		return cur->ll_next;
-	}
-	return NULL;
-}*/
-
-#define next NEXT 
-//TODO:
-//too lazy to find n replace all instances of next() 
-//do that for clarity
 
 token_t *nextTk(lexerNode_t *cur){
 	ADVANCE(&cur);
@@ -116,8 +84,6 @@ int isTypeInLex(lexerNode_t *lex, enum tokenType_e e){
 		ADVANCE(&lex);
 	}
 }
-
-
 
 void advanceTo(lexerNode_t **lex, enum tokenType_e to){
 	lexerNode_t *cur = *lex;
