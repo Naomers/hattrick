@@ -365,7 +365,7 @@ struct stmt_s *parse(lexerNode_t *lex){
 		int tcount = assignCountTargets(lex);
 		s->stmtType = stmtAssign;
 		s->l.ass.targCount = tcount;
-		s->l.ass.targets = malloc(tcount * sizeof(struct repr_s));
+		s->l.ass.targets = malloc(tcount * sizeof(struct repr_s));//what a waste of RAM! lol
 		for(int i = 0;; i++){
 			switch(tkType(lex)){
 				case tok_identifier:
