@@ -181,6 +181,31 @@ void debugWalk(lexerNode_t * head){
 	}
 }
 
+void freeIdentToken(token_t *ident){
+	if(ident->tokType != tok_identifier){
+		return;
+	}
+	if(ident->tokStr){
+		free(ident->tokStr);
+		ident->tokStr = NULL;
+	}
+	return;
+}
+
+void freeToken(token_t *tk){
+	if(!tk){
+		return;
+	}
+	if(tk->tokStr){
+		free(tk->tokStr);
+	}
+	free(tk);
+	tk = NULL;
+	return;
+}
+
+
+
 void indescriminateMemoryExtermination(lexerNode_t *head){
 	lexerNode_t *cur = head;
 	while(cur != NULL){

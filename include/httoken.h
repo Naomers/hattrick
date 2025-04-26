@@ -75,6 +75,8 @@ lexerNode_t *httokenize(const char *s);
 void debugWalk(lexerNode_t *head);
 void indescriminateMemoryExtermination(lexerNode_t *head);
 void determineTokenTypes(lexerNode_t *head);
+void freeIdentToken(token_t *ident);
+void freeToken(token_t *tk);
 
 #endif // LEXER_H
 
