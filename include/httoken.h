@@ -62,21 +62,17 @@ typedef struct lexerNode_s {
 
 
 // Function declarations
-token_t *allocateEmptyToken(void);
 enum tokenType_e singleCharReturn(char c);
 char *substring(const char *s, int ws, int c);
 int peekFor(const char *s, int ws, char peek);
 int peekForAny(const char *s, int ws, const char *peeks);
-lexerNode_t *createNode(char *s);
 lexerNode_t *appendNode(lexerNode_t *head, lexerNode_t *newNode);
 int isStringNumeric(const char *s);
 enum tokenType_e getKeywordType(const char *str);
 lexerNode_t *httokenize(const char *s);
 void debugWalk(lexerNode_t *head);
-void indescriminateMemoryExtermination(lexerNode_t *head);
-void determineTokenTypes(lexerNode_t *head);
-void freeIdentToken(token_t *ident);
-void freeToken(token_t *tk);
+
+#include "httoken_mem.h"
 
 #endif // LEXER_H
 

@@ -12,14 +12,6 @@
 // I believe I know what this is, and it's an easy fix
 // but a relatively low priority.
 
-token_t *allocateEmptyToken(){
-	token_t *token = malloc(sizeof(token_t));
-	token->tokType = tok_TBD;
-	token->tokStrLen = -1;
-	token->tokStr = NULL;
-	return token;
-}
-
 enum tokenType_e singleCharReturn(char c){
 	switch(c){
 		case '+': return tok_op_plus;
@@ -83,14 +75,6 @@ int peekForAny(const char *s, int ws, const char *peeks){
   // Currently 41 instructions (not including however many strchr is)
   // 41 instructions doesn't sound bad but in a larger context its ran many many times
   // According to Callgrind this function is 2% of the entire runtime of the program
-
-lexerNode_t *createNode(char *s){
-	lexerNode_t *node = malloc(sizeof(lexerNode_t));
-	node->ll_tok = allocateEmptyToken();
-	node->ll_tok->tokStr = strdup(s);
-	node->ll_next = NULL;
-	return node;
-}
 
 lexerNode_t *appendNode(lexerNode_t *head, lexerNode_t *new){
 	if(head == NULL){
@@ -178,48 +162,6 @@ void debugWalk(lexerNode_t * head){
 	while(cur != NULL){
 		printf("%d ", cur->ll_tok->tokType);
 		cur = cur->ll_next;
-	}
-}
-
-void freeIdentToken(token_t *ident){
-	if(ident->tokType != tok_identifier){
-		return;
-	}
-	if(ident->tokStr){
-		free(ident->tokStr);
-		ident->tokStr = NULL;
-	}
-	return;
-}
-
-void freeToken(token_t *tk){
-	if(!tk){
-		return;
-	}
-	if(tk->tokStr){
-		free(tk->tokStr);
-	}
-	free(tk);
-	tk = NULL;
-	return;
-}
-
-
-
-void indescriminateMemoryExtermination(lexerNode_t *head){
-	lexerNode_t *cur = head;
-	while(cur != NULL){
-		lexerNode_t *next = cur->ll_next;
-		if(cur->ll_tok){
-			if(cur->ll_tok->tokStr){
-				free(cur->ll_tok->tokStr);
-				cur->ll_tok->tokStr = NULL;
-			}
-			free(cur->ll_tok);
-			cur->ll_tok = NULL;
-		}
-		free(cur);
-		cur = next;
 	}
 }
 

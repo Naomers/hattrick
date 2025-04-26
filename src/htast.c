@@ -3,6 +3,7 @@
 #include "httoken.h"
 #include "htast.h"
 #include "htast_helper.h"
+#include "htgphash.h"
 
 /* Naming convention for clarity:
 /  a lexerNode_t pointer is called cur if only this and the next one are used. 
