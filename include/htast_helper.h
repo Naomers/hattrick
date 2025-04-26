@@ -1,7 +1,7 @@
 #ifndef HTAST_HELPER_H
 #define HTAST_HELPER_H
 
-void ADVANCE(register lexerNode_t **cur){
+static inline void ADVANCE(register lexerNode_t **cur){
 	asm volatile(
 		"mov (%0), %%rax\n\t"     // rax = *cur
 		"mov 8(%%rax), %%rcx\n\t" // rcx = (*cur)->ll_next
@@ -13,6 +13,7 @@ void ADVANCE(register lexerNode_t **cur){
 	// This will be HELL to debug if I ever change the lexerNode_t struct
 	// making the 8 offset no longer valid.
 }
+
 
 enum tokenType_e tkType(register lexerNode_t *cur){
 	int result;

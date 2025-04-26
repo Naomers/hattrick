@@ -417,6 +417,8 @@ int main(){
 	printAssignment(s);
 	//printReturn(s);
 
+	indescriminateMemoryExtermination(tokens);
+
 	//debugWalk(tokens);
 }
 
