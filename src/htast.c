@@ -382,6 +382,46 @@ struct stmt_s *parse(lexerNode_t *lex){
 			ADVANCE(&lex);
 		}
 	}
+	if(isTypeInLex(lex, tok_op_lbrace)){
+		if(!match(lex, tok_identifier)){
+			printf("Syntax error\n");
+			return NULL;
+		}
+		s->stmtType = stmtDef;
+		s->l.callDef.callName = tk(lex);
+		if(!isTypeInLex(lex, tok_op_lpar)){
+			printf("Confused no par\n");
+			return NULL;
+		}
+		int argCount = callCountArgs(lex);
+		s->l.callDef.argCount = argCount;
+		advanceTo(&lex, tok_op_lpar);
+		ADVANCE(&lex);
+		if(argCount){
+			s->l.callDef.args = malloc(sizeof(token_t) * argCount);
+			int i = 0;
+			for(;;){
+				switch(tkType(lex)){
+					case tok_identifier:
+						s->l.callDef.args[i] = tk(lex);
+						i++;
+						ADVANCE(&lex);
+						break;
+					case tok_op_comma:
+						ADVANCE(&lex);
+						break;
+					case tok_op_rpar:
+						return s;
+					default:
+						printf("SYNTAX ERROR CONFUSED\n");
+						return NULL;
+				}
+				if(i == argCount){
+					return s;
+				}
+			}
+		}
+	}
 	return s;
 }
 
@@ -402,6 +442,19 @@ void printAssignment(struct stmt_s *a){
 		}
 		printf("Assign value is\n");
 		printRep(a->l.ass.assignment);
+	}
+}
+
+void printDef(struct stmt_s *d){
+	if(d->stmtType == stmtDef){
+		printf("Call Definition Statement\n");
+		printf("Call name : \n");
+		printf("%s\n", d->l.callDef.callName->tokStr);
+		printf("%d number of args\n", d->l.callDef.argCount);
+		printf("Args : \n");
+		for(int i = 0; i != d->l.callDef.argCount; i++){
+			printf("%s\n", d->l.callDef.args[i]->tokStr);
+		}
 	}
 }
 
@@ -431,6 +484,7 @@ void freeRep(struct repr_s *r){
 			printf("error\n");
 	}
 	free(r);
+	r = NULL;
 }
 
 void freeStmt(struct stmt_s *s){
@@ -439,14 +493,24 @@ void freeStmt(struct stmt_s *s){
 			for(int i = 0; i != s->l.ass.targCount; i++){
 				freeRep(s->l.ass.targets[i]);
 			}
+			free(s->l.ass.targets);
 			freeRep(s->l.ass.assignment);
 			break;
 		case stmtReturn:
 			freeRep(s->l.ret.rv);
 			break;
+		case stmtDef:
+			freeToken( s->l.callDef.callName);
+			for(int i = 0; i != s->l.callDef.argCount; i++){
+				freeToken(s->l.callDef.args[i]);
+			}
+			free(s->l.callDef.args);
+			break;
 		default:
 			printf("error in freeing\n");
 	}
+	free(s);
+	s = NULL;
 }
 
 int main(){
@@ -457,8 +521,6 @@ int main(){
 	determineTokenTypes(tokens);
 
 	struct stmt_s *s = parse(tokens);
-	//printAssignment(s);
-	//printReturn(s);
 
 	indescriminateMemoryExtermination(tokens);
 	freeStmt(s);

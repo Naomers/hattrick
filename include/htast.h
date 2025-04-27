@@ -66,6 +66,11 @@ struct stmt_s {
 			struct repr_s *rv;
 		}ret;
 		struct {
+			token_t *callName;
+			int argCount;
+			token_t **args;
+		}callDef;
+		struct {
 			struct repr_s *repr;
 		}repStmt;
 	}l;

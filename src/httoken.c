@@ -29,6 +29,8 @@ enum tokenType_e singleCharReturn(char c){
 		case '(': return tok_op_lpar;
 		case '[': return tok_op_lbrack;
 		case ']': return tok_op_rbrack;
+		case '{': return tok_op_lbrace;
+		case '}': return tok_op_rbrace;
 		case ';': return tok_comment;
 		case ',': return tok_op_comma;
 	}
@@ -119,7 +121,7 @@ enum tokenType_e getKeywordType(const char *str) {
 
 lexerNode_t *httokenize(const char *s){
 	if(s == NULL) return NULL;
-	const char *sep = " @;=+-/*().,'\"";
+	const char *sep = " {}[]@;=+-/*().,'\"";
 	int ws = 0;
 	lexerNode_t *head = NULL;
 	/* TODO:

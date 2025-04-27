@@ -1,21 +1,19 @@
 #ifndef HTAST_HELPER_H
 #define HTAST_HELPER_H
 
-//This whole file is little endian.
-
-static inline void ADVANCE(register lexerNode_t **cur){
-	asm volatile(
-		"mov (%0), %%rax\n\t"     // rax = *cur
-		"mov 8(%%rax), %%rcx\n\t" // rcx = (*cur)->ll_next
-		"mov %%rcx, (%0)"	  // *cur = rcx 
-		:
-		: "r" (cur)
-		: "rax", "rcx", "memory"
-	);
-	// This will be HELL to debug if I ever change the lexerNode_t struct
-	// making the 8 offset no longer valid.
-}// Inlined to avoid setting up a stack.
-
+#define ADVANCE(cur) do { \
+	asm volatile ( \
+		"mov (%0), %%rax\n\t" \
+		"mov 8(%%rax), %%rcx\n\t" \
+		"mov %%rcx, (%0)" \
+		: \
+		: "r" (cur) \
+		: "rax", "rcx", "memory" \
+	); \
+} while (0)
+// This will be HELL to debug if I ever change the lexerNode_t struct
+// making the 8 offset no longer valid.
+// Inlined to avoid setting up a stack.
 
 enum tokenType_e tkType(register lexerNode_t *cur){
 	int result;
