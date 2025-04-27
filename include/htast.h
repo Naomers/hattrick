@@ -84,9 +84,4 @@ struct repr_s *parseRepr(lexerNode_t *lex);
 struct repr_s *parseCall(lexerNode_t *lex);
 struct repr_s *parseOperKnownLHS(lexerNode_t *lex, struct repr_s *lhs);
 
-void printreplit(struct repr_s *r);
-void printrepident(struct repr_s *r);
-void printOperation(struct repr_s *r);
-void printrepCall(struct repr_s *r);
-
 #endif

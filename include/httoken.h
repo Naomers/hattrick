@@ -7,9 +7,7 @@ enum tokenType_e {
 	tok_INVALID = -2, // means there's been an error in the tokenization/lexing
 			  // tells whatever this gets passed to, to cease its investigations
 
-	tok_TBD = -1,     // This should probably be removed before release
-			  // but this just means we don't know what the token type is yet
-			  // To be determined!
+	tok_TBD = -1,
 	tok_identifier,
 	tok_literal_num,
 	tok_literal_str,

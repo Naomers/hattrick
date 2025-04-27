@@ -3,7 +3,8 @@
 #include "httoken.h"
 #include "htast.h"
 #include "htast_helper.h"
-#include "htgphash.h"
+#include "htast_print.h"
+#include "htast_mem.h"
 
 /* Naming convention for clarity:
 /  a lexerNode_t pointer is called cur if only this and the next one are used. 
@@ -68,19 +69,6 @@ int callCountArgs(lexerNode_t *lex){
 	return aCount;
 }
 
-int isOperation(lexerNode_t *lex){
-	if(isTypeInLex(lex, tok_op_plus)  ||
-	   isTypeInLex(lex, tok_op_minus) ||
-	   isTypeInLex(lex, tok_op_mult)  ||
-	   isTypeInLex(lex, tok_op_div)){
-	   	return 1;
-	}
-	//TODO:
-	//this is a simplistic as shit mthod of checking and it kinda sucks ass. Refine it lots
-}
-
-
-
 struct repr_s *parseIdent(lexerNode_t *cur){
 	struct repr_s *r = malloc(sizeof(struct repr_s));
 	r->reprType = reprIdent;
@@ -94,9 +82,6 @@ struct repr_s *parseLiteral(lexerNode_t *cur){
 	r->l.literal.lit = tk(cur);
 	return r;
 }
-
-
-
 
 struct repr_s *parseRepr(lexerNode_t *lex){
 	struct repr_s *r = NULL;
@@ -244,95 +229,6 @@ struct repr_s *parseCall(lexerNode_t *lex){
 	return r;
 }
 
-void printreplit(struct repr_s *r){
-	if(r->reprType == reprLiteral){
-		printf("This is an AST node for a literal.\n");
-		switch(r->l.literal.lit->tokType){
-			case tok_literal_str:
-				printf("Literal string\n");
-				break;
-			case tok_literal_num:
-				printf("literal number\n");
-		}
-		printf("literal is - %s\n", r->l.ident.id->tokStr);
-	}
-}
-
-
-void printrepident(struct repr_s *r){
-	if(r->reprType == reprIdent){
-		printf("This is an AST node for an identifier.\n");
-		printf("ident is - %s\n", r->l.ident.id->tokStr);
-	}
-}
-
-void printOperation(struct repr_s *r){
-	if(r->reprType == reprOperation){
-		printf("This is an AST node for an operation.\n");
-		struct repr_s *s = r->l.oper.lhs;
-gotoPrintSide:
-		switch(s->reprType){
-			case reprCall:
-				printrepCall(s);
-				break;
-			case reprIdent:
-				printrepident(s);
-				break;
-			case reprLiteral:
-				printreplit(s);
-				break;
-			case reprOperation:
-				printOperation(s);
-				break;
-		}
-		if(s == r->l.oper.lhs){
-			s = r->l.oper.rhs;
-			goto gotoPrintSide;
-		}
-	}
-}
-
-void printrepCall(struct repr_s *r){
-	if(r->reprType == reprCall){
-		printf("This is a function call\n");
-		printf("function is named : %s\n", r->l.call.callName->tokStr);
-		printf("Function has %d arguments\n", r->l.call.argCount);
-		for(int i = 0; i != r->l.call.argCount; i++){
-			switch(r->l.call.args[i]->reprType){
-				case reprCall:
-					printrepCall(r->l.call.args[i]);
-					break;
-				case reprIdent:
-					printrepident(r->l.call.args[i]);
-					break;
-				case reprLiteral:
-					printreplit(r->l.call.args[i]);
-					break;
-				case reprOperation:
-					printOperation(r->l.call.args[i]);
-					break;
-			}
-		}
-	}
-}
-
-void printRep(struct repr_s *r){
-	switch(r->reprType){
-		case reprCall:
-			printrepCall(r);
-			return;
-		case reprIdent:
-			printrepident(r);
-			return;
-		case reprLiteral:
-			printreplit(r);
-			return;
-		case reprOperation:
-			printOperation(r);
-			return;
-	}
-}
-
 int assignCountTargets(lexerNode_t *lex){
 	int count = 0;
 	while(1){
@@ -425,107 +321,26 @@ struct stmt_s *parse(lexerNode_t *lex){
 	return s;
 }
 
-void printReturn(struct stmt_s *r){
-	if(r->stmtType == stmtReturn){
-		printf("Return statement\n");
-		printf("Return value : \n");
-		printRep(r->l.ret.rv);
-	}
-}
-
-void printAssignment(struct stmt_s *a){
-	if(a->stmtType == stmtAssign){
-		printf("Assignment statement\n");
-		printf("Assignment targets : \n");
-		for(int i = 0; i != a->l.ass.targCount; i++){
-			printRep(a->l.ass.targets[i]);
-		}
-		printf("Assign value is\n");
-		printRep(a->l.ass.assignment);
-	}
-}
-
-void printDef(struct stmt_s *d){
-	if(d->stmtType == stmtDef){
-		printf("Call Definition Statement\n");
-		printf("Call name : \n");
-		printf("%s\n", d->l.callDef.callName->tokStr);
-		printf("%d number of args\n", d->l.callDef.argCount);
-		printf("Args : \n");
-		for(int i = 0; i != d->l.callDef.argCount; i++){
-			printf("%s\n", d->l.callDef.args[i]->tokStr);
-		}
-	}
-}
-
-void freeRep(struct repr_s *r){
-	if(!r){
-		return;
-	}
-	switch(r->reprType){
-		case reprIdent:
-			freeIdentToken(r->l.ident.id);
-			break;
-		case reprCall:
-			freeIdentToken(r->l.call.callName);
-			for(int i = 0; i != r->l.call.argCount; i++){
-				freeRep(r->l.call.args[i]);
-			}
-			break;
-		case reprLiteral:
-			freeIdentToken(r->l.literal.lit);
-			break;
-		case reprOperation:
-			freeRep(r->l.oper.lhs);
-			freeRep(r->l.oper.rhs);
-			freeToken(r->l.oper.oper);
-			break;
-		default:
-			printf("error\n");
-	}
-	free(r);
-	r = NULL;
-}
-
-void freeStmt(struct stmt_s *s){
-	switch(s->stmtType){
-		case stmtAssign:
-			for(int i = 0; i != s->l.ass.targCount; i++){
-				freeRep(s->l.ass.targets[i]);
-			}
-			free(s->l.ass.targets);
-			freeRep(s->l.ass.assignment);
-			break;
-		case stmtReturn:
-			freeRep(s->l.ret.rv);
-			break;
-		case stmtDef:
-			freeToken( s->l.callDef.callName);
-			for(int i = 0; i != s->l.callDef.argCount; i++){
-				freeToken(s->l.callDef.args[i]);
-			}
-			free(s->l.callDef.args);
-			break;
-		default:
-			printf("error in freeing\n");
-	}
-	free(s);
-	s = NULL;
-}
-
 int main(){
-	char buff[1024];
-	fgets(buff, sizeof(buff), stdin);
+	/*char buff[1024];
+	fgets(buff, sizeof(buff), stdin);*/
+	/*char *buff = "func(x, y, z){";
 
 	lexerNode_t *tokens = httokenize(buff);
 	determineTokenTypes(tokens);
 
 	struct stmt_s *s = parse(tokens);
+	printDef(s);
 
-	indescriminateMemoryExtermination(tokens);
 	freeStmt(s);
+	indescriminateMemoryExtermination(tokens);
+
+	*/
 
 	//debugWalk(tokens);
+
+	printf("%d\n", sizeof(token_t));
+	
 }
 
 //TODO: organize this whole mess of a file!!!

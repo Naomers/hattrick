@@ -30,15 +30,16 @@ void freeIdentToken(token_t *ident){
 	return;
 }
 
-void freeToken(token_t *tk){
-	if (__builtin_expect(tk == NULL, 0)) {
+void freeToken(token_t **tk){
+	if (__builtin_expect(tk == NULL || *tk == NULL, 0)) {
 		return;
 	}
-	if(tk->tokStr){
-		free(tk->tokStr);
+	if((*tk)->tokStr){
+		free((*tk)->tokStr);
+		(*tk)->tokStr = 0x00;
 	}
-	free(tk);
-	tk = NULL;
+	free(*tk);
+	*tk = 0x00;
 	return;
 }
 
@@ -46,15 +47,10 @@ void freeToken(token_t *tk){
 
 void indescriminateMemoryExtermination(lexerNode_t *head){
 	lexerNode_t *cur = head;
-	while(cur != NULL){
+	while(cur != 0x00){
 		lexerNode_t *next = cur->ll_next;
 		if(cur->ll_tok){
-			if(cur->ll_tok->tokStr){
-				free(cur->ll_tok->tokStr);
-				cur->ll_tok->tokStr = NULL;
-			}
-			free(cur->ll_tok);
-			cur->ll_tok = NULL;
+			freeToken(&cur->ll_tok);
 		}
 		free(cur);
 		cur = next;
