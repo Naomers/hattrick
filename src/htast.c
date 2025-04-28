@@ -321,6 +321,8 @@ struct stmt_s *parse(lexerNode_t *lex){
 	return s;
 }
 
+#include "httoken_mem.h"
+
 int main(){
 	/*char buff[1024];
 	fgets(buff, sizeof(buff), stdin);*/
@@ -338,9 +340,6 @@ int main(){
 	*/
 
 	//debugWalk(tokens);
-
-	printf("%d\n", sizeof(token_t));
-	
 }
 
 //TODO: organize this whole mess of a file!!!
