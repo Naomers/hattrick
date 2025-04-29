@@ -12,6 +12,27 @@ tokpool_t *tkPoolInit(){
 	return p;
 }
 
+token_t *tpRealloc(tokpool_t *tp, size_t chunks){
+	token_t *nb = calloc(chunks, TOKEN_SZ);
+
+	size_t oldChunk_sz = tp->chunks * TOKEN_SZ;
+	size_t newChunk_sz = chunks * TOKEN_SZ;
+
+	size_t usedBytes = oldChunk_sz - (tp->tpFreeBlk - tp->tpBlk);
+
+	memcpy(nb + newChunk_sz - usedBytes,
+	       tp->tpFreeBlk,
+	       usedBytes);
+
+	free(tp->tpBlk);
+	tp->tpBlk = nb;
+	tp->chunks = chunks;
+	tp->tpFreeBlk = nb + newChunk_sz - usedBytes;
+}
+
+
+
+
 void tpEmplace(token_t tk, tokpool_t *tp){
 	tp->tpFreeBlk->tokType = tk.tokType;
 	tp->tpFreeBlk->tokStr = tk.tokStr;
@@ -19,12 +40,7 @@ void tpEmplace(token_t tk, tokpool_t *tp){
 	tp->tpFreeBlk -= TOKEN_SZ;
 	if(tp->tpFreeBlk <= tp->tpBlk){
 		printf("WE HAVE EXCEEDED THE POOL AND NEED A REALLOC\n");
-		size_t newChunk = tp->chunks + DEFAULT_CHUNK;
-		size_t newChunkSize = newChunk * TOKEN_SZ;
-		token_t *newBlk = realloc(tp->tpBlk, newChunkSize);
-		tp->tpBlk = newBlk;
-		tp->chunks = newChunk;
-		tp->tpFreeBlk = tp->tpBlk + newChunkSize;
+		tpRealloc(tp, tp->chunks + DEFAULT_CHUNK);
 	}
 	return;
 	//I think to ensure this all works the way I need it to, I'll need to write my own realloc
