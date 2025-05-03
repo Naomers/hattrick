@@ -1,51 +1,62 @@
 #include "httoken.h"
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
-tokpool_t *tkPoolInit(){
+tokpool_t *globalPool = NULL;
+tokpool_t *tpPoolInit(){
 	tokpool_t *p = malloc(sizeof(tokpool_t));
 	p->tpBlk = calloc(DEFAULT_CHUNK, TOKEN_SZ);
 
 	p->chunks = DEFAULT_CHUNK;
+	p->tpStack.tpFree = malloc(sizeof(uint16_t) * DEFAULT_CHUNK);
+	p->tpStack.tpStackPtr = 0;
+	p->tpStack.tpStackSz = DEFAULT_CHUNK;
 
-	p->tpFreeBlk = p->tpBlk + DEFAULT_CHUNK_SIZE; //growing downwards
+	for(int i = 0; i < p->chunks; i++){
+		p->tpStack.tpFree[i] = i;
+	}
+	p->tpStack.tpStackPtr = p->tpStack.tpStackSz;
+
 	return p;
 }
 
-token_t *tpRealloc(tokpool_t *tp, size_t chunks){
-	token_t *nb = calloc(chunks, TOKEN_SZ);
-
-	size_t oldChunk_sz = tp->chunks * TOKEN_SZ;
-	size_t newChunk_sz = chunks * TOKEN_SZ;
-
-	size_t usedBytes = oldChunk_sz - (tp->tpFreeBlk - tp->tpBlk);
-
-	memcpy(nb + newChunk_sz - usedBytes,
-	       tp->tpFreeBlk,
-	       usedBytes);
-
-	free(tp->tpBlk);
-	tp->tpBlk = nb;
-	tp->chunks = chunks;
-	tp->tpFreeBlk = nb + newChunk_sz - usedBytes;
+token_t *tpStkPop(tokpool_t *tp){
+	token_t *tk = &tp->tpBlk[tp->tpStack.tpStackPtr];
+	tk->tokType = tok_TBD;
+	tk->tokStrLen = -1;
+	tk->tokStr = NULL;
+	tp->tpStack.tpStackPtr--;
+	if(tp->tpStack.tpStackPtr == 0){
+		printf("EMERGENCY REALLOC NEEDED BUT NOT POSSIBLE\n");
+		//TODO: realloc the pool
+	}
+	return tk;
 }
 
+int tpStkIndex(token_t *tk, tokpool_t *tp){
+	ptrdiff_t i = tk - tp->tpBlk;
+	if (i < 0 || (size_t)i >= tp->chunks){
+		return -1;
+	}
+	return (int)i;
+}
 
-
-
-void tpEmplace(token_t tk, tokpool_t *tp){
-	tp->tpFreeBlk->tokType = tk.tokType;
-	tp->tpFreeBlk->tokStr = tk.tokStr;
-	tp->tpFreeBlk->tokStrLen = tk.tokStrLen;
-	tp->tpFreeBlk -= TOKEN_SZ;
-	if(tp->tpFreeBlk <= tp->tpBlk){
-		printf("WE HAVE EXCEEDED THE POOL AND NEED A REALLOC\n");
-		tpRealloc(tp, tp->chunks + DEFAULT_CHUNK);
+void tpStkPush(token_t *tk, tokpool_t *tp){
+	uint16_t i = tpStkIndex(tk, tp);
+	tp->tpStack.tpStackPtr++;
+	tp->tpStack.tpFree[tp->tpStack.tpStackPtr] = i;
+	if(tp->tpStack.tpStackPtr == tp->tpStack.tpStackSz){
+		printf("STACK OVERFLOW\n");
+		//TODO: realloc the stack
 	}
 	return;
-	//I think to ensure this all works the way I need it to, I'll need to write my own realloc
 }
 
+//TODO:
+/* Both the pop and push instructions should probably be bare assembly
+   I'm using the stack approach to reduce overhead and fragmentation
+   I can reduce CPU overhead and CPU usgae with assembly than compiled C */
 	
 
 
@@ -53,66 +64,30 @@ void tpEmplace(token_t tk, tokpool_t *tp){
 
 
 
-
-
-
-
-
-
-
-
-token_t *allocateEmptyToken(){
-	token_t *token = malloc(sizeof(token_t));
-	token->tokType = tok_TBD;
-	token->tokStrLen = -1;
-	token->tokStr = NULL;
-	return token;
+void freeToken(token_t *tk, tokpool_t *tp){
+	if (__builtin_expect(tk == NULL, 0)) {
+		return;
+	}
+	if(tk->tokStr){
+		free(tk->tokStr);
+	}
+	tk->tokType = tok_INVALID;
+	tpStkPush(tk, tp);
+	return;
 }
 
-lexerNode_t *createNode(char *s){
+lexerNode_t *createNode(char *s, tokpool_t *tp){
 	lexerNode_t *node = malloc(sizeof(lexerNode_t));
-	node->ll_tok = allocateEmptyToken();
+	node->ll_tok = tpStkPop(tp);
 	node->ll_tok->tokStr = strdup(s);
 	node->ll_next = NULL;
 	return node;
 }
 
 
-void freeIdentToken(token_t *ident){
-	if(ident->tokType != tok_identifier){
-		return;
-	}
-	if(ident->tokStr){
-		free(ident->tokStr);
-		ident->tokStr = NULL;
-	}
-	return;
-}
-
-void freeToken(token_t **tk){
-	if (__builtin_expect(tk == NULL || *tk == NULL, 0)) {
-		return;
-	}
-	if((*tk)->tokStr){
-		free((*tk)->tokStr);
-		(*tk)->tokStr = 0x00;
-	}
-	free(*tk);
-	*tk = 0x00;
-	return;
-}
 
 
 
-void indescriminateMemoryExtermination(lexerNode_t *head){
-	lexerNode_t *cur = head;
-	while(cur != 0x00){
-		lexerNode_t *next = cur->ll_next;
-		if(cur->ll_tok){
-			freeToken(&cur->ll_tok);
-		}
-		free(cur);
-		cur = next;
-	}
-}
+
+
 

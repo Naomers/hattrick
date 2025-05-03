@@ -120,6 +120,10 @@ enum tokenType_e getKeywordType(const char *str) {
 }
 
 lexerNode_t *httokenize(const char *s){
+	if(globalPool == NULL){
+		globalPool = tpPoolInit();
+	}
+
 	if(s == NULL) return NULL;
 	const char *sep = " {}[]@;=+-/*().,'\"";
 	int ws = 0;
@@ -135,7 +139,7 @@ lexerNode_t *httokenize(const char *s){
 		if(c == -1){
 			if(strlen(s + ws) > 0){
 				char *sub = substring(s, ws, strlen(s));
-				head = appendNode(head, createNode(sub));
+				head = appendNode(head, createNode(sub, globalPool));
 				free(sub);
 			}
 			break;
@@ -143,13 +147,13 @@ lexerNode_t *httokenize(const char *s){
 		// if there are characters before the sep, tokenize them
 		if(c > ws){
 			char *sub = substring(s, ws, c);
-			head = appendNode(head, createNode(sub));
+			head = appendNode(head, createNode(sub, globalPool));
 			free(sub);
 		}
 		//tokenize the sep itself
 		if(s[c] != ' '){ //whitespaces can be ignored
 			char sepStr[2] = { s[c], '\0' };
-			head = appendNode(head, createNode(sepStr));
+			head = appendNode(head, createNode(sepStr, globalPool));
 			if(s[c] == ';'){
 				return head;
 			}
@@ -184,10 +188,6 @@ void determineTokenTypes(lexerNode_t *head){
 			if(tok->tokType == -1){
 				tok->tokType = tok_identifier;
 			}
-			/*if(tok->tokType == tok_comment){
-				indescriminateMemoryExtermination(cur);
-				return;
-			}*/
 		}else {
 			tok->tokType = getKeywordType(tok->tokStr);
 			//TODO: identify literals like 1234 or "foo" 

@@ -340,12 +340,7 @@ int main(){
 	*/
 
 	//debugWalk(tokens);
-	tokpool_t *p = tkPoolInit();
-	token_t tk;
-	tk.tokType = 0xB16B00B5;
-	tpEmplace(tk, p);
-	token_t *inserted = (token_t *)((char *)p->tpFreeBlk + TOKEN_SZ);
-	printf("%X\n", inserted->tokType);
+	tokpool_t *p = tpPoolInit();
 }
 
 //TODO: organize this whole mess of a file!!!
