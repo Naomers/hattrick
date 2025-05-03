@@ -120,8 +120,8 @@ enum tokenType_e getKeywordType(const char *str) {
 }
 
 lexerNode_t *httokenize(const char *s){
-	if(globalPool == NULL){
-		globalPool = tpPoolInit();
+	if(g_tkMemPool == NULL){
+		g_tkMemPool = tpPoolInit();
 	}
 
 	if(s == NULL) return NULL;
@@ -139,7 +139,7 @@ lexerNode_t *httokenize(const char *s){
 		if(c == -1){
 			if(strlen(s + ws) > 0){
 				char *sub = substring(s, ws, strlen(s));
-				head = appendNode(head, createNode(sub, globalPool));
+				head = appendNode(head, createNode(sub));
 				free(sub);
 			}
 			break;
@@ -147,13 +147,13 @@ lexerNode_t *httokenize(const char *s){
 		// if there are characters before the sep, tokenize them
 		if(c > ws){
 			char *sub = substring(s, ws, c);
-			head = appendNode(head, createNode(sub, globalPool));
+			head = appendNode(head, createNode(sub));
 			free(sub);
 		}
 		//tokenize the sep itself
 		if(s[c] != ' '){ //whitespaces can be ignored
 			char sepStr[2] = { s[c], '\0' };
-			head = appendNode(head, createNode(sepStr, globalPool));
+			head = appendNode(head, createNode(sepStr));
 			if(s[c] == ';'){
 				return head;
 			}

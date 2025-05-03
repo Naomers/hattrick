@@ -25,14 +25,22 @@ typedef struct tokpool_s {
 	size_t chunks;
 }tokpool_t;
 
-extern tokpool_t *globalPool;
+extern tokpool_t *g_tkMemPool;
+
+/*******************************************************************************************
+* For now a global for the memory pool works well, but if I ever thread this code
+* it will become an awful fucking mess. It's also just a bit, bad. It's convienent for now
+* but I'd like to change it at some point. 
+*******************************************************************************************/
 
 tokpool_t *tpPoolInit();
 token_t *tpStkPop(tokpool_t *tp);
 void tpStkPush(token_t *tk, tokpool_t *tp);
 
+void freePool(tokpool_t *tp);
 
 void freeToken(token_t *tk, tokpool_t *tp);
-lexerNode_t *createNode(char *s, tokpool_t *tp);
+lexerNode_t *createNode(char *s);
+void freeLex(lexerNode_t *head);
 
 #endif

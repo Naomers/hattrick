@@ -6,21 +6,21 @@ void freeRep(struct repr_s *r){
 	}
 	switch(r->reprType){
 		case reprIdent:
-			freeIdentToken(r->l.ident.id);
+			freeToken(r->l.ident.id, g_tkMemPool);
 			break;
 		case reprCall:
-			freeIdentToken(r->l.call.callName);
+			freeToken(r->l.call.callName, g_tkMemPool);
 			for(int i = 0; i != r->l.call.argCount; i++){
 				freeRep(r->l.call.args[i]);
 			}
 			break;
 		case reprLiteral:
-			freeIdentToken(r->l.literal.lit);
+			freeToken(r->l.literal.lit, g_tkMemPool);
 			break;
 		case reprOperation:
 			freeRep(r->l.oper.lhs);
 			freeRep(r->l.oper.rhs);
-			freeToken(&r->l.oper.oper);
+			freeToken(r->l.oper.oper, g_tkMemPool);
 			break;
 		default:
 			printf("error\n");
@@ -42,9 +42,9 @@ void freeStmt(struct stmt_s *s){
 			freeRep(s->l.ret.rv);
 			break;
 		case stmtDef:
-			freeToken(&s->l.callDef.callName);
+			freeToken(s->l.callDef.callName, g_tkMemPool);
 			for(int i = 0; i != s->l.callDef.argCount; i++){
-				freeToken(&s->l.callDef.args[i]);
+				freeToken(s->l.callDef.args[i], g_tkMemPool);
 			}
 			free(s->l.callDef.args);
 			break;

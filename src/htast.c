@@ -326,21 +326,17 @@ struct stmt_s *parse(lexerNode_t *lex){
 int main(){
 	/*char buff[1024];
 	fgets(buff, sizeof(buff), stdin);*/
-	/*char *buff = "func(x, y, z){";
+	char *buff = "func(x, y, z){";
 
 	lexerNode_t *tokens = httokenize(buff);
 	determineTokenTypes(tokens);
-
 	struct stmt_s *s = parse(tokens);
 	printDef(s);
-
+	freeLex(tokens);
 	freeStmt(s);
-	indescriminateMemoryExtermination(tokens);
+	freePool(g_tkMemPool);
+	
 
-	*/
-
-	//debugWalk(tokens);
-	tokpool_t *p = tpPoolInit();
 }
 
 //TODO: organize this whole mess of a file!!!

@@ -71,6 +71,7 @@ int isStringNumeric(const char *s);
 enum tokenType_e getKeywordType(const char *str);
 lexerNode_t *httokenize(const char *s);
 void debugWalk(lexerNode_t *head);
+void determineTokenTypes(lexerNode_t *head);
 
 #include "httoken_mem.h"
 
