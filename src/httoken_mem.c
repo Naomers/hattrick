@@ -22,19 +22,6 @@ tokpool_t *tpPoolInit(){
 	return p;
 }
 
-token_t *tpStkPop(tokpool_t *tp){
-	token_t *tk = &tp->tpBlk[tp->tpStack.tpFree[tp->tpStack.tpStackPtr]];
-	tk->tokType = tok_TBD;
-	tk->tokStrLen = -1;
-	tk->tokStr = NULL;
-	tp->tpStack.tpStackPtr--;
-	if(tp->tpStack.tpStackPtr == 0){
-		printf("EMERGENCY REALLOC NEEDED BUT NOT POSSIBLE\n");
-		//TODO: realloc the pool
-	}
-	return tk;
-}
-
 int tpStkIndex(token_t *tk, tokpool_t *tp){
 	ptrdiff_t i = tk - tp->tpBlk;
 	if (i < 0 || (size_t)i >= tp->chunks){
@@ -43,6 +30,42 @@ int tpStkIndex(token_t *tk, tokpool_t *tp){
 	return (int)i;
 }
 
+token_t *tpPoolRealloc(token_t *oldBlk, size_t oSz, size_t nSz){
+	token_t *newPool = calloc(1, nSz);
+	size_t copySize = oSz < nSz? oSz: nSz;
+	memcpy(newPool, oldBlk, copySize);
+	free(oldBlk);
+	return newPool;
+}
+
+
+
+
+token_t *tpStkPop(tokpool_t *tp){
+	printf("Using index %d\n", tpStkIndex(&tp->tpBlk[tp->tpStack.tpFree[tp->tpStack.tpStackPtr]], tp));
+	token_t *tk = &tp->tpBlk[tp->tpStack.tpFree[tp->tpStack.tpStackPtr]];
+	tk->tokType = tok_TBD;
+	tk->tokStrLen = -1;
+	tk->tokStr = NULL;
+	tp->tpStack.tpStackPtr--;
+	if(tp->tpStack.tpStackPtr == 1){
+		//TODO: realloc the pool
+		tp->tpBlk = tpPoolRealloc(tp->tpBlk, tp->chunks,(tp->chunks + DEFAULT_CHUNK) * TOKEN_SZ);
+		for(int i = 0; i < DEFAULT_CHUNK; i++){
+			//printf("USINGNGGNNGNGNG %d\n\n", i + tp->chunks);
+			//tpStkPush(&tp->tpBlk[i + tp->chunks], tp);
+			tp->tpStack.tpStackPtr++;
+			tp->tpStack.tpFree[i + tp->chunks];
+			if (tp->tpStack.tpStackPtr + 1 >= tp->tpStack.tpStackSz){
+				break;
+			}
+
+		}
+		tp->chunks += DEFAULT_CHUNK;
+	}
+
+	return tk;
+}
 void tpStkPush(token_t *tk, tokpool_t *tp){
 	if (tp->tpStack.tpStackPtr + 1 >= tp->tpStack.tpStackSz) {
 		printf("STACK OVERFLOW\n");
@@ -51,6 +74,7 @@ void tpStkPush(token_t *tk, tokpool_t *tp){
 	}
 
 	uint16_t i = tpStkIndex(tk, tp);
+	//printf("%d ADDING TO STACK INDEX\n", i);
 	tp->tpStack.tpStackPtr++;
 	tp->tpStack.tpFree[tp->tpStack.tpStackPtr] = i;
 	return;
@@ -81,6 +105,7 @@ void freeToken(token_t *tk, tokpool_t *tp){
 }
 
 lexerNode_t *createNode(char *s){
+	printf("%s\n", s);
 	lexerNode_t *node = malloc(sizeof(lexerNode_t));
 	node->ll_tok = tpStkPop(g_tkMemPool);
 	node->ll_tok->tokStr = strdup(s);
@@ -108,6 +133,3 @@ void freeLex(lexerNode_t *head){
 		cur = next;
 	}
 }
-
-
-

@@ -321,22 +321,18 @@ struct stmt_s *parse(lexerNode_t *lex){
 	return s;
 }
 
-#include "httoken_mem.h"
-
 int main(){
 	/*char buff[1024];
 	fgets(buff, sizeof(buff), stdin);*/
-	char *buff = "func(x, y, z){";
+	char *buff = "func(x, y, z){ a = x + y + z == 1234567";
 
 	lexerNode_t *tokens = httokenize(buff);
 	determineTokenTypes(tokens);
-	struct stmt_s *s = parse(tokens);
-	printDef(s);
+	//struct stmt_s *s = parse(tokens);
+	//printDef(s);
 	freeLex(tokens);
-	freeStmt(s);
+	//freeStmt(s);
 	freePool(g_tkMemPool);
-	
-
 }
 
 //TODO: organize this whole mess of a file!!!
