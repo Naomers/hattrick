@@ -20,7 +20,7 @@ typedef struct tokpool_s {
 		size_t tpStackSz;
 	}tpStack; //The free stack is first so its the fastest to address
 
-	ALIGN_16 token_t *tpBlk; 
+	token_t *tpBlk; 
 
 	size_t chunks;
 }tokpool_t;
@@ -28,9 +28,9 @@ typedef struct tokpool_s {
 extern tokpool_t *g_tkMemPool;
 
 /*******************************************************************************************
-* For now a global for the memory pool works well, but if I ever thread this code
-* it will become an awful fucking mess. It's also just a bit, bad. It's convienent for now
-* but I'd like to change it at some point. 
+* For now a global for the memory pool works well, but if I ever thread this code          *
+* it will become an awful fucking mess. It's also just a bit, bad. It's convienent for now *
+* but I'd like to change it at some point.                                                 *
 *******************************************************************************************/
 
 tokpool_t *tpPoolInit();
