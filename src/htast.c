@@ -324,7 +324,7 @@ struct stmt_s *parse(lexerNode_t *lex){
 int main(){
 	/*char buff[1024];
 	fgets(buff, sizeof(buff), stdin);*/
-	printf("%d\n", sizeof(tokpool_t));
+	/*printf("%d\n", sizeof(tokpool_t));
 	char *buff = "func(x, y, z){ a = x + y + z == 1234567";
 
 	lexerNode_t *tokens = httokenize(buff);
@@ -333,7 +333,9 @@ int main(){
 	//printDef(s);
 	freeLex(tokens);
 	//freeStmt(s);
-	freePool(g_tkMemPool);
+	freePool(g_tkMemPool);*/
+
+	tokpool_t *tp = tpInit();
 }
 
 //TODO: organize this whole mess of a file!!!
